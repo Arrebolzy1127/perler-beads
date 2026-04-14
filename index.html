@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>拼豆图纸生成器 · MARD 终极版</title>
+<style>
+:root{
+  --bg:#f0f4f8;--surface:#fff;--surface2:#f7f8fc;--border:#e2e8f0;
+  --text:#2d3748;--text2:#718096;--text3:#a0aec0;
+  --accent:#6c63ff;--accent2:#48c6ef;--accent-bg:#ede9ff;
+  --danger:#f56565;--success:#48bb78;--warning:#ed8936;
+  --shadow:0 2px 16px rgba(0,0,0,.08);--shadow-lg:0 8px 32px rgba(0,0,0,.14);
+  --radius:14px;--radius-sm:8px;
+}
+[data-theme="dark"]{
+  --bg:#0f1117;--surface:#1a1d27;--surface2:#22263a;--border:#2d3452;
+  --text:#e2e8f0;--text2:#a0aec0;--text3:#4a5568;--accent-bg:#2d2b5a;
+  --shadow:0 2px 16px rgba(0,0,0,.4);--shadow-lg:0 8px 32px rgba(0,0,0,.5);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .3s,color .3s;}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+header{background:linear-gradient(135deg,#6c63ff,#48c6ef);padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 20px rgba(108,99,255,.3);position:sticky;top:0;z-index:200;}
+.hl{display:flex;align-items:center;gap:8px;}
+.hl h1{font-size:1.1rem;color:#fff;font-weight:700;letter-spacing:.5px;}
+.hbadge{background:rgba(255,255,255,.2);color:#fff;font-size:.65rem;padding:2px 8px;border-radius:16px;font-weight:600;}
+.hr{display:flex;gap:6px;}
+.ibtn{background:rgba(255,255,255,.16);border:none;color:#fff;width:32px;height:32px;border-radius:7px;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;transition:.2s;}
+.ibtn:hover{background:rgba(255,255,255,.3);}
+.layout{display:flex;height:calc(100vh - 52px);overflow:hidden;}
+.lp{width:295px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;}
+.tab{flex:1;padding:9px 0;text-align:center;font-size:.78rem;font-weight:600;color:var(--text2);cursor:pointer;border:none;background:transparent;border-bottom:2.5px solid transparent;transition:.2s;}
+.tab.on{color:var(--accent);border-bottom-color:var(--accent);}
+.tbody{flex:1;overflow-y:auto;padding:14px;display:none;}
+.tbody.on{display:block;}
+.card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;margin-bottom:12px;}
+.ct{font-size:.8rem;font-weight:700;color:var(--text2);margin-bottom:9px;display:flex;align-items:center;gap:5px;}
+.fr{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;gap:6px;}
+.fr label{font-size:.8rem;color:var(--text2);white-space:nowrap;}
+.fr input[type=range]{flex:1;accent-color:var(--accent);min-width:70px;}
+.vb{font-weight:700;color:var(--accent);min-width:28px;text-align:right;font-size:.85rem;}
+select,input[type=text],input[type=number]{background:var(--surface);border:1.5px solid var(--border);border-radius:6px;padding:6px 9px;font-size:.82rem;color:var(--text);outline:none;width:100%;transition:border .2s;}
+select:focus,input[type=text]:focus{border-color:var(--accent);}
+.ckr{display:flex;align-items:center;gap:7px;margin-bottom:7px;cursor:pointer;}
+.ckr input{accent-color:var(--accent);width:14px;height:14px;}
+.ckr span{font-size:.8rem;color:var(--text2);}
+.btn{display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 12px;border:none;border-radius:7px;font-size:.82rem;cursor:pointer;font-weight:600;transition:.2s;white-space:nowrap;}
+.btn:active{transform:scale(.96);}
+.btn:disabled{opacity:.35;cursor:not-allowed!important;transform:none!important;}
+.bp{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 3px 12px rgba(108,99,255,.25);}
+.bs{background:var(--surface2);color:var(--text);border:1.5px solid var(--border);}
+.bs:hover:not(:disabled){border-color:var(--accent);color:var(--accent);}
+.bd{background:#fff0f0;color:var(--danger);border:1.5px solid #fecaca;}
+.bhd{background:linear-gradient(135deg,#f093fb,#f5576c);color:#fff;}
+.bsm{padding:5px 9px;font-size:.75rem;}
+.bfull{width:100%;}
+.bg{display:flex;flex-direction:column;gap:6px;}
+.bgr{display:flex;gap:6px;}
+.bgr .btn{flex:1;}
+.csb{position:relative;margin-bottom:8px;}
+.csb input{padding-left:28px;}
+.csb .si{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:.85rem;}
+.sf{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px;}
+.sp{padding:2px 9px;border-radius:16px;font-size:.7rem;font-weight:700;cursor:pointer;border:1.5px solid transparent;transition:.2s;background:var(--surface2);color:var(--text2);}
+.sp.on{background:var(--accent);color:#fff;border-color:var(--accent);}
+.sp:hover:not(.on){border-color:var(--accent);color:var(--accent);}
+.cl{display:flex;flex-direction:column;gap:3px;max-height:280px;overflow-y:auto;}
+.ci{display:flex;align-items:center;gap:7px;padding:5px 7px;border-radius:6px;background:var(--surface);border:1.5px solid transparent;cursor:pointer;transition:.2s;font-size:.77rem;}
+.ci:hover{border-color:var(--accent);background:var(--accent-bg);}
+.ci.cc{border-color:#f6ad55;background:#fffaf0;}
+[data-theme="dark"] .ci.cc{background:#2a1f0a;}
+.cd{width:20px;height:20px;border-radius:50%;border:2px solid rgba(0,0,0,.1);flex-shrink:0;}
+.cii{flex:1;min-width:0;}
+.cid{font-weight:700;color:var(--text);}
+.cin{font-size:.7rem;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cia{display:flex;gap:3px;opacity:0;transition:.15s;}
+.ci:hover .cia{opacity:1;}
+.mb{width:22px;height:22px;border:none;border-radius:5px;cursor:pointer;font-size:.7rem;display:flex;align-items:center;justify-content:center;transition:.15s;}
+.mbe{background:#e9e4ff;color:var(--accent);}
+.mbd{background:#ffe4e4;color:var(--danger);}
+.mb:hover{transform:scale(1.15);}
+.nsf{background:var(--accent-bg);border:2px dashed var(--accent);border-radius:var(--radius-sm);padding:12px;margin-bottom:12px;}
+.nsf h3{font-size:.8rem;color:var(--accent);margin-bottom:8px;font-weight:700;}
+.fg{display:flex;flex-direction:column;gap:3px;margin-bottom:8px;}
+.fg label{font-size:.72rem;font-weight:600;color:var(--text2);}
+.acf{background:var(--surface2);border:2px dashed var(--border);border-radius:var(--radius-sm);padding:12px;margin-top:10px;transition:border-color .2s;}
+.acf:focus-within{border-color:var(--accent);}
+.acf h3{font-size:.8rem;color:var(--text2);margin-bottom:8px;font-weight:700;}
+.cpr{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.bcp{width:42px;height:42px;border-radius:9px;border:2px solid var(--border);flex-shrink:0;cursor:pointer;position:relative;overflow:hidden;transition:transform .2s;}
+.bcp:hover{transform:scale(1.08);}
+.bcp input[type=color]{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;padding:0;border:none;}
+.cfg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;}
+.cfl{font-size:.7rem;color:var(--text3);margin-bottom:2px;}
+.ca{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.ct2{background:var(--surface);border-bottom:1px solid var(--border);padding:6px 12px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex-shrink:0;}
+.tsep{width:1px;height:22px;background:var(--border);flex-shrink:0;}
+.tb{padding:5px 10px;border-radius:6px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text2);font-size:.77rem;cursor:pointer;font-weight:600;transition:.2s;display:flex;align-items:center;gap:4px;white-space:nowrap;}
+.tb:hover,.tb.on{background:var(--accent-bg);color:var(--accent);border-color:var(--accent);}
+.ci2{margin-left:auto;font-size:.72rem;color:var(--text3);display:flex;gap:6px;}
+.ic{background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:2px 7px;font-weight:600;font-size:.72rem;}
+.cs{flex:1;overflow:auto;display:flex;align-items:flex-start;padding:16px;position:relative;}
+#grid-canvas{display:none;image-rendering:auto;border:1px solid var(--border);cursor:crosshair;border-radius:3px;box-shadow:var(--shadow);}
+#placeholder{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--text3);gap:12px;width:100%;}
+.phi{font-size:4rem;}
+.pht{font-size:1rem;font-weight:600;color:var(--text2);}
+.phs{font-size:.82rem;}
+.phint{display:none;padding:5px 14px;font-size:.78rem;font-weight:600;text-align:center;flex-shrink:0;}
+.phint.show{display:block;}
+.phint.paint{background:linear-gradient(135deg,#f093fb,#f5576c);color:#fff;}
+.phint.fill{background:linear-gradient(135deg,#48c6ef,#6c63ff);color:#fff;}
+.phint.pick{background:linear-gradient(135deg,#fbd38d,#ed8936);color:#fff;}
+.phint.replace{background:linear-gradient(135deg,#48bb78,#38a169);color:#fff;}
+.phint.mirror{background:linear-gradient(135deg,#9f7aea,#6b46c1);color:#fff;}
+#compare-panel{display:none;background:var(--surface);border-top:1px solid var(--border);padding:12px;flex-shrink:0;}
+#compare-panel h3{font-size:.82rem;color:var(--text2);margin-bottom:8px;}
+.compare-wrap{display:flex;gap:12px;align-items:flex-start;overflow:auto;}
+.compare-wrap img,.compare-wrap canvas{max-height:180px;border:1px solid var(--border);border-radius:6px;}
+.compare-label{font-size:.72rem;color:var(--text3);text-align:center;margin-top:4px;}
+.rp{width:260px;flex-shrink:0;background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.rph{padding:10px 14px;border-bottom:1px solid var(--border);font-size:.85rem;font-weight:700;color:var(--text);display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.sc{display:flex;flex-wrap:wrap;gap:5px;padding:10px 12px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.sch{background:var(--accent-bg);color:var(--accent);border-radius:16px;padding:3px 9px;font-size:.72rem;font-weight:700;}
+.ls{flex:1;overflow-y:auto;padding:8px 10px;}
+.li{display:flex;align-items:center;gap:6px;padding:5px 6px;border-radius:6px;margin-bottom:3px;background:var(--surface2);border:1px solid var(--border);cursor:pointer;transition:.15s;}
+.li:hover{border-color:var(--accent);}
+.lsw{width:20px;height:20px;border-radius:50%;border:2px solid rgba(0,0,0,.1);flex-shrink:0;}
+.lin{flex:1;min-width:0;}
+.lid{font-size:.75rem;font-weight:700;color:var(--text);}
+.lsub{font-size:.68rem;color:var(--text3);}
+.lc{font-size:.75rem;font-weight:700;color:var(--text2);flex-shrink:0;text-align:right;}
+.lbw{height:3px;background:var(--border);border-radius:2px;margin-top:2px;}
+.lb{height:3px;border-radius:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));}
+.ctx-menu{position:fixed;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow-lg);padding:4px;z-index:5000;display:none;min-width:180px;}
+.ctx-item{padding:7px 12px;font-size:.8rem;cursor:pointer;border-radius:5px;display:flex;align-items:center;gap:7px;transition:.1s;}
+.ctx-item:hover{background:var(--accent-bg);color:var(--accent);}
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:1000;backdrop-filter:blur(4px);}
+.mo.show{display:flex;}
+.md{background:var(--surface);border-radius:16px;box-shadow:var(--shadow-lg);padding:24px;min-width:340px;max-width:500px;width:90%;animation:mi .25s ease;max-height:85vh;overflow-y:auto;}
+@keyframes mi{from{transform:scale(.92) translateY(16px);opacity:0;}to{transform:scale(1);opacity:1;}}
+.mh{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.mtl{font-size:1rem;font-weight:700;color:var(--text);}
+.mc{background:none;border:none;color:var(--text3);cursor:pointer;font-size:1.1rem;padding:4px;border-radius:6px;}
+.mc:hover{color:var(--danger);background:#fff0f0;}
+.mb2{display:flex;flex-direction:column;gap:10px;}
+.mf{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;}
+.fg2{display:flex;flex-direction:column;gap:3px;}
+.fg2 label{font-size:.78rem;font-weight:600;color:var(--text2);}
+.fg2 input,.fg2 select{padding:8px 10px;font-size:.85rem;}
+.cg{display:flex;flex-wrap:wrap;gap:5px;max-height:280px;overflow-y:auto;padding:4px;}
+.cgc{width:46px;height:46px;border-radius:8px;cursor:pointer;border:2.5px solid transparent;display:flex;align-items:center;justify-content:center;font-size:.56rem;font-weight:700;transition:.15s;text-align:center;}
+.cgc:hover{transform:scale(1.12);box-shadow:0 2px 10px rgba(0,0,0,.2);}
+.cgc.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-bg);}
+.tc{position:fixed;bottom:20px;right:20px;z-index:2000;display:flex;flex-direction:column;gap:6px;}
+.toast{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:8px 14px;box-shadow:var(--shadow-lg);font-size:.82rem;display:flex;align-items:center;gap:7px;animation:ti .3s ease;min-width:200px;}
+@keyframes ti{from{transform:translateX(50px);opacity:0;}to{transform:none;opacity:1;}}
+.toast-s{border-left:3px solid var(--success);}
+.toast-e{border-left:3px solid var(--danger);}
+.toast-i{border-left:3px solid var(--accent);}
+#loading{display:none;position:fixed;inset:0;background:rgba(15,17,23,.6);z-index:500;align-items:center;justify-content:center;flex-direction:column;gap:14px;backdrop-filter:blur(6px);}
+#loading.show{display:flex;}
+.spin{width:44px;height:44px;border:4px solid rgba(108,99,255,.2);border-top-color:var(--accent);border-radius:50%;animation:sp .75s linear infinite;}
+@keyframes sp{to{transform:rotate(360deg);}}
+#tooltip{position:fixed;background:rgba(15,17,23,.9);color:#fff;padding:6px 11px;border-radius:8px;font-size:.76rem;pointer-events:none;display:none;z-index:9999;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.3);}
+#drop-zone{border:2px dashed var(--border);border-radius:9px;padding:20px 14px;text-align:center;cursor:pointer;transition:.25s;background:var(--surface);}
+#drop-zone:hover,#drop-zone.dragover{border-color:var(--accent);background:var(--accent-bg);}
+#drop-zone .dzi{font-size:2rem;margin-bottom:4px;}
+#drop-zone p{color:var(--text2);font-size:.8rem;}
+#drop-zone p.sub{color:var(--text3);font-size:.7rem;margin-top:2px;}
+#file-input{display:none;}
+#preview-img{width:100%;max-height:120px;object-fit:contain;border-radius:7px;display:none;margin-top:8px;}
+.kbd{display:inline-block;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-size:.68rem;font-family:monospace;color:var(--text2);}
+.hist-bar{display:flex;align-items:center;gap:4px;font-size:.72rem;color:var(--text3);}
+.hist-dot{width:6px;height:6px;border-radius:50%;background:var(--border);}
+.hist-dot.cur{background:var(--accent);}
+@media(max-width:900px){.rp{display:none;}.lp{width:260px;}}
+@media(max-width:600px){.lp{display:none;}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hl"><span>🧩</span><h1>拼豆图纸生成器</h1><span class="hbadge">MARD 终极版 v3</span></div>
+  <div class="hr">
+    <button class="ibtn" id="btn-shortcuts" title="快捷键">⌨️</button>
+    <button class="ibtn" id="btn-dark" title="暗色模式">🌙</button>
+    <button class="ibtn" id="btn-help" title="帮助">❓</button>
+  </div>
+</header>
+
+<div class="layout">
+<div class="lp">
+  <div class="tabs">
+    <button class="tab on" data-t="setup">⚙️ 生成</button>
+    <button class="tab" data-t="colors">🎨 色号</button>
+    <button class="tab" data-t="series">📁 色系</button>
+  </div>
+  <div class="tbody on" id="tab-setup">
+    <div class="card">
+      <div class="ct">📂 上传图片</div>
+      <div id="drop-zone"><div class="dzi">🖼️</div><p>点击或拖拽图片</p><p class="sub">PNG / JPG / GIF / WebP</p><input type="file" id="file-input" accept="image/*"/></div>
+      <img id="preview-img" alt=""/>
+    </div>
+    <div class="card">
+      <div class="ct">⚙️ 参数</div>
+      <div class="fr"><label>网格宽（颗）</label><input type="range" id="grid-w" min="16" max="128" value="48"/><span class="vb" id="vw">48</span></div>
+      <div class="fr"><label>格子大小</label><input type="range" id="cell-sz" min="8" max="48" value="20"/><span class="vb" id="vc">20</span></div>
+      <div class="ckr"><input type="checkbox" id="ck-num" checked/><span>显示色号</span></div>
+      <div class="ckr"><input type="checkbox" id="ck-grid" checked/><span>显示网格线</span></div>
+      <div class="ckr"><input type="checkbox" id="ck-board"/><span>显示拼板边界（29×29）</span></div>
+    </div>
+    <div class="card">
+      <div class="ct">🎨 色板</div>
+      <select id="pal-sel" style="margin-bottom:6px;">
+        <option value="full">MARD全色板（221色）</option>
+        <option value="noHM">去除H/M中性色</option>
+        <option value="hm">仅H/M中性色</option>
+      </select>
+    </div>
+    <div class="bg">
+      <button class="btn bp bfull" id="btn-gen" disabled>⚡ 生成图纸</button>
+      <div class="bgr"><button class="btn bs" id="btn-exp" disabled>💾 标准</button><button class="btn bhd" id="btn-exphd" disabled>🔍 高清4×</button></div>
+      <div class="bgr"><button class="btn bs" id="btn-csv" disabled>📊 CSV</button><button class="btn bs" id="btn-print" disabled>🖨️ 打印</button></div>
+      <button class="btn bs bfull" id="btn-compare" disabled>🔄 对比原图</button>
+    </div>
+  </div>
+  <div class="tbody" id="tab-colors">
+    <div class="csb"><span class="si">🔍</span><input type="text" id="c-search" placeholder="搜索色号/名称/HEX…"/></div>
+    <div class="sf" id="s-filter"></div>
+    <div class="cl" id="c-list"></div>
+    <div class="acf">
+      <h3>➕ 添加颜色</h3>
+      <div class="cpr">
+        <div class="bcp" id="cpb" style="background:#6c63ff;"><input type="color" id="cpi" value="#6c63ff"/></div>
+        <div style="flex:1;"><div class="cfl">HEX</div><div style="display:flex;gap:4px;align-items:center;"><span style="font-family:monospace;color:var(--text3);font-size:.8rem;">#</span><input type="text" id="c-hex" placeholder="6C63FF" maxlength="6" style="font-family:monospace;text-transform:uppercase;"/></div></div>
+      </div>
+      <div class="cfg">
+        <div><div class="cfl">色号</div><input type="text" id="c-id" placeholder="Z1"/></div>
+        <div><div class="cfl">名称</div><input type="text" id="c-name" placeholder="自定义红"/></div>
+      </div>
+      <div class="fg" style="margin-bottom:8px;"><div class="cfl">所属色系</div><select id="c-series"></select></div>
+      <div class="bgr">
+        <button class="btn bp bsm" id="btn-addc" style="flex:1;">✅ 添加</button>
+        <button class="btn bs bsm" id="btn-pickc" title="从画布吸色">🖱️ 吸色</button>
+      </div>
+    </div>
+    <div class="card" style="margin-top:10px;">
+      <div class="ct">📤 数据管理</div>
+      <div class="bgr"><button class="btn bs bsm" id="btn-expc">📤 导出</button><button class="btn bs bsm" id="btn-impc">📥 导入</button></div>
+      <button class="btn bd bsm bfull" style="margin-top:6px;" id="btn-clearc">🗑️ 清空自定义</button>
+      <input type="file" id="imp-file" accept=".json" style="display:none;"/>
+    </div>
+  </div>
+  <div class="tbody" id="tab-series">
+    <div class="nsf">
+      <h3>🌈 创建自定义色系</h3>
+      <div class="fg"><label>色系代码（如 Z / MY）</label><input type="text" id="ns-code" placeholder="Z" maxlength="4" style="text-transform:uppercase;"/></div>
+      <div class="fg"><label>色系名称</label><input type="text" id="ns-name" placeholder="我的专属色系"/></div>
+      <div class="fg"><label>色系 Emoji</label><input type="text" id="ns-emoji" placeholder="⭐" maxlength="2"/></div>
+      <div class="fg"><label>描述</label><input type="text" id="ns-desc" placeholder="自定义的特殊颜色"/></div>
+      <button class="btn bp bsm bfull" id="btn-newser">🆕 创建色系</button>
+    </div>
+    <div class="card"><div class="ct">📋 全部色系</div><div id="ser-list"></div></div>
+    <div class="card">
+      <div class="ct">📦 色板预设</div><div id="preset-list"></div>
+      <button class="btn bp bsm bfull" style="margin-top:8px;" id="btn-savepal">💾 保存当前色板</button>
+    </div>
+  </div>
+</div>
+
+<div class="ca">
+  <div class="ct2">
+    <button class="tb on" id="t-pointer" title="查看(V)">🖱️</button>
+    <button class="tb" id="t-paint" title="涂色(B)">🖌️</button>
+    <button class="tb" id="t-fill" title="填充(G)">🪣</button>
+    <button class="tb" id="t-pick" title="吸管(I)">💉</button>
+    <button class="tb" id="t-replace" title="替换(R)">🔄</button>
+    <div class="tsep"></div>
+    <button class="tb" id="t-mirror" title="镜像(M)">🪞</button>
+    <div class="tsep"></div>
+    <div id="paint-sel" style="display:none;align-items:center;gap:5px;">
+      <div id="ps-dot" style="width:20px;height:20px;border-radius:50%;border:2px solid var(--border);cursor:pointer;"></div>
+      <span id="ps-label" style="font-size:.72rem;color:var(--text2);max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+    </div>
+    <div class="tsep" id="ps-sep" style="display:none;"></div>
+    <button class="tb" id="t-undo" title="撤销(Ctrl+Z)" disabled>↩️</button>
+    <button class="tb" id="t-redo" title="重做(Ctrl+Y)" disabled>↪️</button>
+    <div class="hist-bar" id="hist-bar"></div>
+    <div class="tsep"></div>
+    <button class="tb" id="t-zin">🔍+</button>
+    <button class="tb" id="t-zout">🔍-</button>
+    <button class="tb" id="t-z1">1:1</button>
+    <div class="ci2"><span class="ic" id="i-grid">—</span><span class="ic" id="i-res">—</span></div>
+  </div>
+  <div class="phint" id="hint"></div>
+  <div class="cs" id="canvas-scroll">
+    <div id="placeholder"><div class="phi">🧩</div><div class="pht">欢迎使用拼豆图纸生成器</div><div class="phs">上传图片 → 选色板 → 生成图纸</div></div>
+    <canvas id="grid-canvas"></canvas>
+  </div>
+  <div id="compare-panel"><h3>🔄 原图对比</h3><div class="compare-wrap"><div><img id="compare-orig"/><div class="compare-label">原图</div></div><div><canvas id="compare-canvas"></canvas><div class="compare-label">拼豆图纸</div></div></div></div>
+</div>
+
+<div class="rp">
+  <div class="rph">📋 用料统计</div>
+  <div class="sc" id="sc"><span style="color:var(--text3);font-size:.78rem;">生成后显示</span></div>
+  <div class="ls" id="ls"></div>
+</div>
+</div>
+
+<div class="ctx-menu" id="ctx-menu">
+  <div class="ctx-item" data-act="pick-this">💉 吸取此颜色</div>
+  <div class="ctx-item" data-act="fill-here">🪣 填充此区域</div>
+  <div class="ctx-item" data-act="replace-this">🔄 替换此颜色为…</div>
+  <div class="ctx-item" data-act="highlight">✨ 高亮同色格子</div>
+  <div class="ctx-item" data-act="count-this">📊 统计此颜色</div>
+</div>
+
+<div class="mo" id="m-edit"><div class="md">
+  <div class="mh"><span class="mtl">✏️ 编辑颜色</span><button class="mc" onclick="closeM('m-edit')">✕</button></div>
+  <div class="mb2">
+    <div style="display:flex;gap:10px;align-items:flex-start;">
+      <div id="ed-preview" style="width:52px;height:52px;border-radius:10px;border:2px solid var(--border);position:relative;overflow:hidden;flex-shrink:0;"><input type="color" id="ed-picker" style="position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;border:none;"/></div>
+      <div style="flex:1;"><div class="fg2"><label>HEX</label><input type="text" id="ed-hex" maxlength="7"/></div></div>
+    </div>
+    <div class="fg2"><label>色号</label><input type="text" id="ed-id" maxlength="8"/></div>
+    <div class="fg2"><label>名称</label><input type="text" id="ed-name"/></div>
+    <div class="fg2"><label>色系</label><select id="ed-ser"></select></div>
+  </div>
+  <div class="mf"><button class="btn bs" onclick="closeM('m-edit')">取消</button><button class="btn bp" id="btn-saved">保存</button></div>
+</div></div>
+
+<div class="mo" id="m-pick"><div class="md" style="max-width:460px;">
+  <div class="mh"><span class="mtl" id="pick-title">🎨 选择颜色</span><button class="mc" onclick="closeM('m-pick')">✕</button></div>
+  <input type="text" id="pick-search" placeholder="🔍 搜索…" style="margin-bottom:8px;"/>
+  <div class="cg" id="pick-grid"></div>
+</div></div>
+
+<div class="mo" id="m-replace"><div class="md">
+  <div class="mh"><span class="mtl">🔄 全局颜色替换</span><button class="mc" onclick="closeM('m-replace')">✕</button></div>
+  <div class="mb2"><div style="display:flex;align-items:center;gap:10px;">
+    <div><div class="cfl">将此颜色</div><div id="rep-from" style="width:40px;height:40px;border-radius:8px;border:2px solid var(--border);cursor:pointer;" onclick="openPickFor('from')"></div><div id="rep-from-label" style="font-size:.7rem;color:var(--text3);margin-top:3px;"></div></div>
+    <span style="font-size:1.2rem;color:var(--text3);">→</span>
+    <div><div class="cfl">替换为</div><div id="rep-to" style="width:40px;height:40px;border-radius:8px;border:2px solid var(--border);cursor:pointer;" onclick="openPickFor('to')"></div><div id="rep-to-label" style="font-size:.7rem;color:var(--text3);margin-top:3px;"></div></div>
+  </div></div>
+  <div class="mf"><button class="btn bs" onclick="closeM('m-replace')">取消</button><button class="btn bp" id="btn-dorep">🔄 执行替换</button></div>
+</div></div>
+
+<div class="mo" id="m-keys"><div class="md" style="max-width:380px;">
+  <div class="mh"><span class="mtl">⌨️ 快捷键</span><button class="mc" onclick="closeM('m-keys')">✕</button></div>
+  <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:.84rem;">
+    <kbd class="kbd">V</kbd><span>查看</span><kbd class="kbd">B</kbd><span>涂色</span>
+    <kbd class="kbd">G</kbd><span>填充</span><kbd class="kbd">I</kbd><span>吸管</span>
+    <kbd class="kbd">R</kbd><span>替换</span><kbd class="kbd">M</kbd><span>镜像</span>
+    <kbd class="kbd">Ctrl+Z</kbd><span>撤销</span><kbd class="kbd">Ctrl+Y</kbd><span>重做</span>
+    <kbd class="kbd">+/-</kbd><span>缩放</span><kbd class="kbd">0</kbd><span>重置</span>
+  </div>
+</div></div>
+
+<div class="mo" id="m-help"><div class="md" style="max-width:460px;">
+  <div class="mh"><span class="mtl">❓ 使用指南</span><button class="mc" onclick="closeM('m-help')">✕</button></div>
+  <div style="line-height:1.7;font-size:.85rem;color:var(--text2);">
+    <b>🚀 基本</b>：上传图片 → 选色板 → 生成图纸<br><br>
+    <b>🎨 自定义色系</b>：「色系」页可创建全新分类<br><br>
+    <b>🖌️ 涂色</b>：点击/拖拽、填充、吸管、全局替换<br><br>
+    <b>🪞 镜像</b>：涂色时自动对称绘制<br><br>
+    <b>↩️ 撤销</b>：Ctrl+Z 逐步撤销，Ctrl+Y 重做<br><br>
+    <b>🖱️ 右键</b>：格子上右键有快捷操作
+  </div>
+  <div class="mf"><button class="btn bp" onclick="closeM('m-help')">知道了</button></div>
+</div></div>
+
+<div id="tooltip"></div>
+<div class="tc" id="tc"></div>
+<div id="loading"><div class="spin"></div><div style="color:#fff;font-weight:600;font-size:.9rem;">正在匹配色号…</div></div>
+
+<script>
+'use strict';
+/* ═══════════════════════════════════════════
+   MARD 官方色板 221色
+═══════════════════════════════════════════ */
+const OFF=[
+{id:'A1',name:'浅米黄',hex:'#FAF5CD',s:'A'},{id:'A2',name:'淡黄',hex:'#FCFED6',s:'A'},{id:'A3',name:'柠檬黄',hex:'#FCFF92',s:'A'},{id:'A4',name:'亮黄',hex:'#F7EC5C',s:'A'},{id:'A5',name:'金黄',hex:'#F0D83A',s:'A'},{id:'A6',name:'橙黄',hex:'#FDA951',s:'A'},{id:'A7',name:'浅橙',hex:'#FA8C4F',s:'A'},{id:'A8',name:'向日葵黄',hex:'#FBDA4D',s:'A'},{id:'A9',name:'橘色',hex:'#F79D5F',s:'A'},{id:'A10',name:'深橙',hex:'#F47E38',s:'A'},{id:'A11',name:'浅蜂蜜',hex:'#FEDB99',s:'A'},{id:'A12',name:'桃橙',hex:'#FDA276',s:'A'},{id:'A13',name:'琥珀黄',hex:'#FEC667',s:'A'},{id:'A14',name:'橙红',hex:'#F75842',s:'A'},{id:'A15',name:'荧光黄',hex:'#FBF65E',s:'A'},{id:'A16',name:'奶油黄',hex:'#FEFF97',s:'A'},{id:'A17',name:'中黄',hex:'#FDE173',s:'A'},{id:'A18',name:'香槟橙',hex:'#FCBF80',s:'A'},{id:'A19',name:'浅珊瑚',hex:'#FD7E77',s:'A'},{id:'A20',name:'浅金黄',hex:'#F9D66E',s:'A'},{id:'A21',name:'米黄',hex:'#FAE393',s:'A'},{id:'A22',name:'黄绿黄',hex:'#EDF878',s:'A'},{id:'A23',name:'浅棕黄',hex:'#E4C8BA',s:'A'},{id:'A24',name:'浅黄绿',hex:'#F3F6A9',s:'A'},{id:'A25',name:'暖金黄',hex:'#FFD785',s:'A'},{id:'A26',name:'亮金橙',hex:'#FFC734',s:'A'},
+{id:'B1',name:'荧光黄绿',hex:'#DFF13B',s:'B'},{id:'B2',name:'荧光绿',hex:'#64F343',s:'B'},{id:'B3',name:'浅草绿',hex:'#A1F586',s:'B'},{id:'B4',name:'亮绿',hex:'#5FDF34',s:'B'},{id:'B5',name:'嫩绿',hex:'#39E158',s:'B'},{id:'B6',name:'薄荷绿',hex:'#64E0A4',s:'B'},{id:'B7',name:'中绿',hex:'#3EAE7C',s:'B'},{id:'B8',name:'草绿',hex:'#1D9B54',s:'B'},{id:'B9',name:'深绿',hex:'#2A5037',s:'B'},{id:'B10',name:'浅碧绿',hex:'#9AD1BA',s:'B'},{id:'B11',name:'橄榄绿',hex:'#627032',s:'B'},{id:'B12',name:'森林绿',hex:'#1A6E3D',s:'B'},{id:'B13',name:'黄草绿',hex:'#C8E87D',s:'B'},{id:'B14',name:'苹果绿',hex:'#ABE84F',s:'B'},{id:'B15',name:'墨绿',hex:'#305335',s:'B'},{id:'B16',name:'黄绿',hex:'#C0ED4F',s:'B'},{id:'B17',name:'卡其绿',hex:'#9EB33E',s:'B'},{id:'B18',name:'芥末绿',hex:'#E6ED4F',s:'B'},{id:'B19',name:'松石绿',hex:'#26B78E',s:'B'},{id:'B20',name:'浅绿白',hex:'#CBECCF',s:'B'},{id:'B21',name:'深孔雀绿',hex:'#18616A',s:'B'},{id:'B22',name:'暗翠绿',hex:'#0A4241',s:'B'},{id:'B23',name:'暗军绿',hex:'#343B1A',s:'B'},{id:'B24',name:'浅黄绿',hex:'#E8FAA6',s:'B'},{id:'B25',name:'海绿',hex:'#4E846D',s:'B'},{id:'B26',name:'深橄榄',hex:'#907C35',s:'B'},{id:'B27',name:'浅橄榄',hex:'#D0E0AF',s:'B'},{id:'B28',name:'碧绿',hex:'#9EE5BB',s:'B'},{id:'B29',name:'草黄绿',hex:'#C6DF5F',s:'B'},{id:'B30',name:'极浅绿',hex:'#E3FBB1',s:'B'},{id:'B31',name:'浅翠绿',hex:'#B4E691',s:'B'},{id:'B32',name:'中草绿',hex:'#92B060',s:'B'},
+{id:'C1',name:'极浅蓝绿',hex:'#F0FEE4',s:'C'},{id:'C2',name:'浅青',hex:'#ABF8FE',s:'C'},{id:'C3',name:'青绿',hex:'#1AE0F7',s:'C'},{id:'C4',name:'浅天蓝',hex:'#44CDFB',s:'C'},{id:'C5',name:'天蓝',hex:'#06AADF',s:'C'},{id:'C6',name:'中天蓝',hex:'#54A7E9',s:'C'},{id:'C7',name:'道奇蓝',hex:'#3977CA',s:'C'},{id:'C8',name:'皇家蓝',hex:'#0F52BD',s:'C'},{id:'C9',name:'深宝蓝',hex:'#3349C3',s:'C'},{id:'C10',name:'水蓝',hex:'#3CBCE3',s:'C'},{id:'C11',name:'翠蓝',hex:'#2ADED3',s:'C'},{id:'C12',name:'藏青',hex:'#1E334E',s:'C'},{id:'C13',name:'冰蓝',hex:'#CDE7FE',s:'C'},{id:'C14',name:'薄荷蓝',hex:'#D5FCF7',s:'C'},{id:'C15',name:'孔雀蓝',hex:'#21C5C4',s:'C'},{id:'C16',name:'钴蓝',hex:'#1858A2',s:'C'},{id:'C17',name:'荧光青',hex:'#02D1F3',s:'C'},{id:'C18',name:'深藏青',hex:'#213244',s:'C'},{id:'C19',name:'水鸭蓝',hex:'#18869D',s:'C'},{id:'C20',name:'湖蓝',hex:'#1A70A9',s:'C'},{id:'C21',name:'淡蓝',hex:'#BCDDFC',s:'C'},{id:'C22',name:'蓝绿',hex:'#6BB1BB',s:'C'},{id:'C23',name:'浅冰蓝',hex:'#C8E2FD',s:'C'},{id:'C24',name:'天际蓝',hex:'#7EC5F9',s:'C'},{id:'C25',name:'浅松石',hex:'#A9E8E0',s:'C'},{id:'C26',name:'海洋蓝',hex:'#42ADCF',s:'C'},{id:'C27',name:'粉冰蓝',hex:'#D0DEF9',s:'C'},{id:'C28',name:'雾蓝',hex:'#BDCEE8',s:'C'},{id:'C29',name:'深海蓝',hex:'#364A89',s:'C'},
+{id:'D1',name:'浅丁香蓝',hex:'#ACB7EF',s:'D'},{id:'D2',name:'浅紫蓝',hex:'#868DD3',s:'D'},{id:'D3',name:'矢车菊蓝',hex:'#3554AF',s:'D'},{id:'D4',name:'深宝石蓝',hex:'#162D7B',s:'D'},{id:'D5',name:'亮紫',hex:'#B34EC6',s:'D'},{id:'D6',name:'浅紫',hex:'#B37BDC',s:'D'},{id:'D7',name:'中紫',hex:'#8758A9',s:'D'},{id:'D8',name:'极浅紫',hex:'#E3D2FE',s:'D'},{id:'D9',name:'薰衣草',hex:'#D5B9F4',s:'D'},{id:'D10',name:'深暗紫',hex:'#301A49',s:'D'},{id:'D11',name:'浅灰紫',hex:'#BEB9E2',s:'D'},{id:'D12',name:'粉紫',hex:'#DC99CE',s:'D'},{id:'D13',name:'品红紫',hex:'#B5038D',s:'D'},{id:'D14',name:'葡萄紫',hex:'#862993',s:'D'},{id:'D15',name:'深靛蓝',hex:'#2F1F8C',s:'D'},{id:'D16',name:'浅蓝灰',hex:'#E2E4F0',s:'D'},{id:'D17',name:'冰紫蓝',hex:'#C7D3F9',s:'D'},{id:'D18',name:'紫蓝',hex:'#9A64B8',s:'D'},{id:'D19',name:'浅紫灰',hex:'#D8C2D9',s:'D'},{id:'D20',name:'紫罗兰',hex:'#9A35AD',s:'D'},{id:'D21',name:'深紫红',hex:'#940595',s:'D'},{id:'D22',name:'靛蓝',hex:'#38389A',s:'D'},{id:'D23',name:'冰薰衣草',hex:'#EADBF8',s:'D'},{id:'D24',name:'蓝紫',hex:'#768AE1',s:'D'},{id:'D25',name:'宝蓝紫',hex:'#4950C2',s:'D'},{id:'D26',name:'浅紫粉',hex:'#D6C6EB',s:'D'},
+{id:'E1',name:'极浅粉',hex:'#F6D4CB',s:'E'},{id:'E2',name:'浅樱粉',hex:'#FCC1DD',s:'E'},{id:'E3',name:'淡紫粉',hex:'#F6BDE8',s:'E'},{id:'E4',name:'中粉',hex:'#E8649E',s:'E'},{id:'E5',name:'亮粉',hex:'#F0569F',s:'E'},{id:'E6',name:'玫瑰红',hex:'#EB4172',s:'E'},{id:'E7',name:'深玫红',hex:'#C53674',s:'E'},{id:'E8',name:'浅粉白',hex:'#FDDBE9',s:'E'},{id:'E9',name:'洋红粉',hex:'#E376C7',s:'E'},{id:'E10',name:'品红',hex:'#D13B95',s:'E'},{id:'E11',name:'浅蜜粉',hex:'#F7DAD4',s:'E'},{id:'E12',name:'糖果粉',hex:'#F693BF',s:'E'},{id:'E13',name:'深玫紫',hex:'#B5016A',s:'E'},{id:'E14',name:'桃粉',hex:'#FAD4BF',s:'E'},{id:'E15',name:'腮红粉',hex:'#F5C9CA',s:'E'},{id:'E16',name:'极浅粉白',hex:'#FBF4EC',s:'E'},{id:'E17',name:'雾粉',hex:'#F7E3EC',s:'E'},{id:'E18',name:'樱花粉',hex:'#F9C8DB',s:'E'},{id:'E19',name:'浅玫粉',hex:'#F6BBD1',s:'E'},{id:'E20',name:'浅灰粉',hex:'#D7C6CE',s:'E'},{id:'E21',name:'中灰粉',hex:'#C09DA4',s:'E'},{id:'E22',name:'暗灰粉',hex:'#B38C9F',s:'E'},{id:'E23',name:'深灰粉',hex:'#937D8A',s:'E'},{id:'E24',name:'浅紫粉',hex:'#DEBEE5',s:'E'},
+{id:'F1',name:'浅珊瑚红',hex:'#FE9381',s:'F'},{id:'F2',name:'荧光红',hex:'#F63D4B',s:'F'},{id:'F3',name:'番茄红',hex:'#EE4E3E',s:'F'},{id:'F4',name:'亮红',hex:'#FB2A40',s:'F'},{id:'F5',name:'鲜红',hex:'#E10328',s:'F'},{id:'F6',name:'砖红',hex:'#913635',s:'F'},{id:'F7',name:'深砖红',hex:'#911932',s:'F'},{id:'F8',name:'暗红',hex:'#BB0126',s:'F'},{id:'F9',name:'浅玫红',hex:'#E0677A',s:'F'},{id:'F10',name:'赤棕红',hex:'#874628',s:'F'},{id:'F11',name:'深酒红',hex:'#592323',s:'F'},{id:'F12',name:'草莓红',hex:'#F3536B',s:'F'},{id:'F13',name:'朱红',hex:'#F45C45',s:'F'},{id:'F14',name:'浅粉红',hex:'#FCADB2',s:'F'},{id:'F15',name:'正红',hex:'#D50527',s:'F'},{id:'F16',name:'浅肉粉',hex:'#F8C0A9',s:'F'},{id:'F17',name:'桃肉色',hex:'#E89B7D',s:'F'},{id:'F18',name:'橙棕',hex:'#D07F4A',s:'F'},{id:'F19',name:'深珊瑚',hex:'#BE454A',s:'F'},{id:'F20',name:'玫瑰棕',hex:'#C69495',s:'F'},{id:'F21',name:'浅玫粉',hex:'#F2B8C6',s:'F'},{id:'F22',name:'淡粉',hex:'#F7C3D0',s:'F'},{id:'F23',name:'珊瑚橙',hex:'#ED806C',s:'F'},{id:'F24',name:'玫瑰灰',hex:'#E09DAF',s:'F'},{id:'F25',name:'亮玫红',hex:'#E84854',s:'F'},
+{id:'G1',name:'极浅肤',hex:'#FFE4D3',s:'G'},{id:'G2',name:'婴儿肤',hex:'#FCC6AC',s:'G'},{id:'G3',name:'浅肤',hex:'#F1C4A5',s:'G'},{id:'G4',name:'中肤',hex:'#DCB387',s:'G'},{id:'G5',name:'浅棕黄',hex:'#E7B34E',s:'G'},{id:'G6',name:'金棕',hex:'#E3A014',s:'G'},{id:'G7',name:'中棕',hex:'#985C3A',s:'G'},{id:'G8',name:'深棕',hex:'#713D2F',s:'G'},{id:'G9',name:'沙棕',hex:'#E4B685',s:'G'},{id:'G10',name:'驼棕',hex:'#DA8C42',s:'G'},{id:'G11',name:'卡其',hex:'#DAC898',s:'G'},{id:'G12',name:'浅蜜棕',hex:'#FEC993',s:'G'},{id:'G13',name:'红棕',hex:'#B2714B',s:'G'},{id:'G14',name:'咖啡棕',hex:'#8B684C',s:'G'},{id:'G15',name:'米绿白',hex:'#F6F8E3',s:'G'},{id:'G16',name:'浅桃肤',hex:'#F2D8C1',s:'G'},{id:'G17',name:'深红棕',hex:'#77544E',s:'G'},{id:'G18',name:'浅橙肤',hex:'#FFE3D5',s:'G'},{id:'G19',name:'铜棕',hex:'#DD7D41',s:'G'},{id:'G20',name:'深铜棕',hex:'#A5452F',s:'G'},{id:'G21',name:'浅咖啡',hex:'#B38561',s:'G'},
+{id:'H1',name:'纯白',hex:'#FFFFFF',s:'H'},{id:'H2',name:'亮白',hex:'#FBFBFB',s:'H'},{id:'H3',name:'浅灰',hex:'#B4B4B4',s:'H'},{id:'H4',name:'中灰',hex:'#878787',s:'H'},{id:'H5',name:'深灰',hex:'#464648',s:'H'},{id:'H6',name:'炭灰',hex:'#2C2C2C',s:'H'},{id:'H7',name:'纯黑',hex:'#010101',s:'H'},{id:'H8',name:'浅玫灰',hex:'#E7D6DC',s:'H'},{id:'H9',name:'极浅灰',hex:'#EFEDEE',s:'H'},{id:'H10',name:'银灰',hex:'#EBEBEB',s:'H'},{id:'H11',name:'浅银灰',hex:'#CDCDCD',s:'H'},{id:'H12',name:'暖白',hex:'#FDF6EE',s:'H'},{id:'H13',name:'米白',hex:'#F4EFD1',s:'H'},{id:'H14',name:'浅蓝灰',hex:'#CED7D4',s:'H'},{id:'H15',name:'灰蓝',hex:'#9AA6A6',s:'H'},{id:'H16',name:'暖黑',hex:'#1B1213',s:'H'},{id:'H17',name:'雾白',hex:'#F0EEEF',s:'H'},{id:'H18',name:'薄荷白',hex:'#FCFFF6',s:'H'},{id:'H19',name:'乳白',hex:'#F2EEE5',s:'H'},{id:'H20',name:'冷灰蓝',hex:'#96A09F',s:'H'},{id:'H21',name:'浅绿白',hex:'#F8FBE6',s:'H'},{id:'H22',name:'冷灰紫',hex:'#CACAD2',s:'H'},{id:'H23',name:'暗冷灰',hex:'#9B9C94',s:'H'},
+{id:'M1',name:'浅苔灰',hex:'#BBC6B6',s:'M'},{id:'M2',name:'苔灰',hex:'#909994',s:'M'},{id:'M3',name:'深苔灰',hex:'#697E80',s:'M'},{id:'M4',name:'浅沙灰',hex:'#E0D4BC',s:'M'},{id:'M5',name:'沙灰',hex:'#D1CCAF',s:'M'},{id:'M6',name:'深沙灰',hex:'#B0AA86',s:'M'},{id:'M7',name:'暖灰',hex:'#B0A796',s:'M'},{id:'M8',name:'玫瑰灰',hex:'#AE7F82',s:'M'},{id:'M9',name:'棕灰',hex:'#A68862',s:'M'},{id:'M10',name:'浅紫灰',hex:'#C4B3BB',s:'M'},{id:'M11',name:'中紫灰',hex:'#9E7592',s:'M'},{id:'M12',name:'深紫棕',hex:'#644A51',s:'M'},{id:'M13',name:'浅铜棕',hex:'#C79266',s:'M'},{id:'M14',name:'深铜红',hex:'#C27464',s:'M'},{id:'M15',name:'冷暗灰',hex:'#747D7A',s:'M'}
+];
+
+/* ═══ State ═══ */
+const LS=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch{return d}};
+const SS=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}};
+let customColors=LS('mc_cc',[]),customSeries=LS('mc_cs',[]),customPals=LS('mc_cp',[]);
+let GR=null,CSZ=20,imgData=null,palKey='full',actSer='ALL';
+let tool='pointer',mirrorOn=false,paintCol=null,isPainting=false;
+let editingId=null,repFrom=null,repTo=null,pickTarget=null;
+const MAX_HIST=60;let history=[],histIdx=-1;
+
+/* ═══ History ═══ */
+function pushHist(){if(!GR)return;history=history.slice(0,histIdx+1);history.push(GR.map(r=>r.map(c=>({...c}))));if(history.length>MAX_HIST)history.shift();histIdx=history.length-1;updH();}
+function undo(){if(histIdx<=0)return;histIdx--;GR=history[histIdx].map(r=>r.map(c=>({...c})));render();renderLeg();updH();toast('↩️ 撤销','i',1e3);}
+function redo(){if(histIdx>=history.length-1)return;histIdx++;GR=history[histIdx].map(r=>r.map(c=>({...c})));render();renderLeg();updH();toast('↪️ 重做','i',1e3);}
+function updH(){$('t-undo').disabled=histIdx<=0;$('t-redo').disabled=histIdx>=history.length-1;const b=$('hist-bar');b.innerHTML='';const s=Math.max(0,histIdx-7);for(let i=s;i<Math.min(s+15,history.length);i++)b.innerHTML+=`<div class="hist-dot${i===histIdx?' cur':''}"></div>`;}
+
+/* ═══ Color utils ═══ */
+function h2r(h){const x=h.replace('#','');return[parseInt(x.slice(0,2),16),parseInt(x.slice(2,4),16),parseInt(x.slice(4,6),16)];}
+function r2lab(r,g,b){let R=r/255,G=g/255,B=b/255;R=R>.04045?((R+.055)/1.055)**2.4:R/12.92;G=G>.04045?((G+.055)/1.055)**2.4:G/12.92;B=B>.04045?((B+.055)/1.055)**2.4:B/12.92;let X=(R*.4124+G*.3576+B*.1805)/.95047,Y=R*.2126+G*.7152+B*.0722,Z=(R*.0193+G*.1192+B*.9505)/1.08883;const f=v=>v>.008856?Math.cbrt(v):7.787*v+16/116;return[116*f(Y)-16,500*(f(X)-f(Y)),200*(f(Y)-f(Z))];}
+function cDist(a,b){return Math.sqrt((a[0]-b[0])**2+(a[1]-b[1])**2+(a[2]-b[2])**2);}
+function lum(h){const[r,g,b]=h2r(h);return .299*r+.587*g+.114*b;}
+function txc(h){return lum(h)>145?'rgba(0,0,0,.7)':'rgba(255,255,255,.9)';}
+
+/* ═══ Data ═══ */
+const SER_DEF={A:{n:'A 黄橙',e:'🟡'},B:{n:'B 绿色',e:'🟢'},C:{n:'C 蓝青',e:'🔵'},D:{n:'D 蓝紫',e:'🟣'},E:{n:'E 粉色',e:'🌸'},F:{n:'F 红色',e:'🔴'},G:{n:'G 棕肤',e:'🟫'},H:{n:'H 白灰',e:'⬜'},M:{n:'M 中性',e:'🪨'}};
+function allSeries(){const o={...SER_DEF};customSeries.forEach(s=>o[s.code]={n:s.name,e:s.emoji||'⭐',d:s.desc,custom:true});return o;}
+function allColors(){return[...OFF,...customColors];}
+function getPal(k){const a=allColors();if(k==='full')return a;if(k==='noHM')return a.filter(c=>!['H','M'].includes(c.s));if(k==='hm')return a.filter(c=>['H','M'].includes(c.s));const cp=customPals.find(p=>p.id===k);return cp?cp.colorIds.map(id=>a.find(c=>c.id===id)).filter(Boolean):a;}
+
+/* ═══ DOM helpers ═══ */
+const $=id=>document.getElementById(id);
+const GC=$('grid-canvas'),PH=$('placeholder'),TT=$('tooltip');
+function toast(m,t='i',d=2200){const e=document.createElement('div');e.className='toast toast-'+t;e.innerHTML=`<span>${{s:'✅',e:'❌',i:'ℹ️'}[t]}</span><span>${m}</span>`;$('tc').appendChild(e);setTimeout(()=>{e.style.opacity='0';e.style.transform='translateX(40px)';e.style.transition='.3s';setTimeout(()=>e.remove(),300)},d);}
+function openM(id){$(id).classList.add('show');}
+function closeM(id){$(id).classList.remove('show');}
+document.querySelectorAll('.mo').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('show')}));
+function dl(c,fn,m){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([c],{type:m}));a.download=fn;a.click();}
+
+/* ═══ Theme ═══ */
+$('btn-dark').addEventListener('click',()=>{const d=document.documentElement.dataset.theme==='dark';document.documentElement.dataset.theme=d?'light':'dark';$('btn-dark').textContent=d?'🌙':'☀️';SS('mc_t',d?'light':'dark');});
+(()=>{const t=LS('mc_t','light');document.documentElement.dataset.theme=t;$('btn-dark').textContent=t==='dark'?'☀️':'🌙'})();
+$('btn-help').addEventListener('click',()=>openM('m-help'));
+$('btn-shortcuts').addEventListener('click',()=>openM('m-keys'));
+
+/* ═══ Tabs ═══ */
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));document.querySelectorAll('.tbody').forEach(x=>x.classList.remove('on'));b.classList.add('on');$('tab-'+b.dataset.t).classList.add('on');if(b.dataset.t==='colors')renderCL();if(b.dataset.t==='series')renderST();}));
+
+/* ═══ Upload ═══ */
+const DZ=$('drop-zone'),FI=$('file-input'),PI=$('preview-img');
+DZ.addEventListener('click',()=>FI.click());
+DZ.addEventListener('dragover',e=>{e.preventDefault();DZ.classList.add('dragover')});
+DZ.addEventListener('dragleave',()=>DZ.classList.remove('dragover'));
+DZ.addEventListener('drop',e=>{e.preventDefault();DZ.classList.remove('dragover');if(e.dataTransfer.files[0])loadF(e.dataTransfer.files[0])});
+FI.addEventListener('change',()=>{if(FI.files[0])loadF(FI.files[0])});
+function loadF(f){const r=new FileReader();r.onload=e=>{PI.src=e.target.result;PI.style.display='block';imgData=e.target.result;$('btn-gen').disabled=false;toast('图片已上传','s')};r.readAsDataURL(f);}
+
+/* ═══ Sliders ═══ */
+$('grid-w').addEventListener('input',()=>$('vw').textContent=$('grid-w').value);
+$('cell-sz').addEventListener('input',()=>{CSZ=+$('cell-sz').value;$('vc').textContent=CSZ;if(GR)render()});
+$('ck-num').addEventListener('change',()=>{if(GR)render()});
+$('ck-grid').addEventListener('change',()=>{if(GR)render()});
+$('ck-board').addEventListener('change',()=>{if(GR)render()});
+$('pal-sel').addEventListener('change',()=>{palKey=$('pal-sel').value});
+
+/* ═══ Generate ═══ */
+$('btn-gen').addEventListener('click',()=>{if(!imgData)return;$('loading').classList.add('show');setTimeout(gen,30)});
+function gen(){
+  const gw=+$('grid-w').value,pal=getPal(palKey);
+  if(!pal.length){toast('色板为空','e');$('loading').classList.remove('show');return;}
+  const pL=pal.map(c=>{const[r,g,b]=h2r(c.hex);return r2lab(r,g,b)});
+  const img=new Image();
+  img.onload=()=>{
+    const gh=Math.max(1,Math.round(gw*img.naturalHeight/img.naturalWidth));
+    const off=document.createElement('canvas');off.width=gw;off.height=gh;
+    const ctx=off.getContext('2d');ctx.drawImage(img,0,0,gw,gh);
+    const px=ctx.getImageData(0,0,gw,gh).data;
+    GR=[];
+    for(let r=0;r<gh;r++){const row=[];for(let c=0;c<gw;c++){const i=(r*gw+c)*4;const lab=r2lab(px[i],px[i+1],px[i+2]);let best=0,bd=1e9;for(let j=0;j<pL.length;j++){const d=cDist(lab,pL[j]);if(d<bd){bd=d;best=j;}}row.push({...pal[best]})}GR.push(row)}
+    history=[];histIdx=-1;pushHist();CSZ=+$('cell-sz').value;render();renderLeg();
+    [$('btn-exp'),$('btn-exphd'),$('btn-csv'),$('btn-print'),$('btn-compare')].forEach(b=>b.disabled=false);
+    $('loading').classList.remove('show');toast(`图纸完成 ${gw}×${gh}`,'s');
+  };img.src=imgData;
+}
+
+/* ═══ Render ═══ */
+function renderTo(cv,cs,scale,exp=false){
+  const rows=GR.length,cols=GR[0].length,dpr=exp?scale:(devicePixelRatio||2);
+  cv.width=cols*cs*dpr;cv.height=rows*cs*dpr;
+  if(!exp){cv.style.width=cols*cs+'px';cv.style.height=rows*cs+'px';}
+  const ctx=cv.getContext('2d');ctx.clearRect(0,0,cv.width,cv.height);
+  ctx.save();ctx.scale(dpr,dpr);
+  const sn=$('ck-num').checked,sg=$('ck-grid').checked,sb=$('ck-board').checked;
+  const fs=Math.max(6,Math.floor(cs*.36));
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+    const e=GR[r][c],x=c*cs,y=r*cs;
+    ctx.fillStyle=e.hex;ctx.fillRect(x,y,cs,cs);
+    if(sg){ctx.strokeStyle='rgba(0,0,0,.11)';ctx.lineWidth=.5;ctx.strokeRect(x+.25,y+.25,cs-.5,cs-.5);}
+    if(sn&&cs>=12){ctx.font=`bold ${fs}px 'PingFang SC',monospace`;ctx.lineWidth=fs*.28;ctx.lineJoin='round';const l=lum(e.hex);ctx.strokeStyle=l>145?'rgba(255,255,255,.5)':'rgba(0,0,0,.3)';ctx.strokeText(e.id,x+cs/2,y+cs/2);ctx.fillStyle=txc(e.hex);ctx.fillText(e.id,x+cs/2,y+cs/2);}
+  }
+  if(sb&&cs>=6){ctx.strokeStyle='rgba(255,0,0,.35)';ctx.lineWidth=1.5;ctx.setLineDash([4,4]);for(let i=29;i<cols;i+=29){ctx.beginPath();ctx.moveTo(i*cs,0);ctx.lineTo(i*cs,rows*cs);ctx.stroke();}for(let i=29;i<rows;i+=29){ctx.beginPath();ctx.moveTo(0,i*cs);ctx.lineTo(cols*cs,i*cs);ctx.stroke();}ctx.setLineDash([]);}
+  ctx.restore();
+}
+function render(){GC.style.display='block';PH.style.display='none';renderTo(GC,CSZ,devicePixelRatio||2);const d=devicePixelRatio||2;$('i-grid').textContent=GR[0].length+'×'+GR.length;$('i-res').textContent=GR[0].length*CSZ*d+'×'+GR.length*CSZ*d+'px';}
+
+/* ═══ Legend ═══ */
+function cnt(){const c={};for(const r of GR)for(const e of r){if(!c[e.id])c[e.id]={e,n:0};c[e.id].n++;}return c;}
+function renderLeg(){
+  const c=cnt(),t=GR.length*GR[0].length;
+  $('sc').innerHTML=`<span class="sch">共${t.toLocaleString()}颗</span><span class="sch">${Object.keys(c).length}色</span><span class="sch">${GR[0].length}×${GR.length}</span>`;
+  const ls=$('ls');ls.innerHTML='';const mx=Math.max(...Object.values(c).map(v=>v.n));
+  Object.values(c).sort((a,b)=>b.n-a.n).forEach(({e,n})=>{
+    const li=document.createElement('div');li.className='li';
+    li.innerHTML=`<div class="lsw" style="background:${e.hex}"></div><div class="lin"><div class="lid">${e.id} · ${e.name}</div><div class="lbw"><div class="lb" style="width:${(n/mx*100).toFixed(1)}%"></div></div><div class="lsub">${e.hex}</div></div><div class="lc">${n}<br><span style="font-size:.6rem;color:var(--text3)">${(n/t*100).toFixed(1)}%</span></div>`;
+    li.addEventListener('click',()=>highlightC(e.id));ls.appendChild(li);
+  });
+}
+function highlightC(id){render();const ctx=GC.getContext('2d'),dpr=devicePixelRatio||2;ctx.save();ctx.scale(dpr,dpr);for(let r=0;r<GR.length;r++)for(let c=0;c<GR[0].length;c++)if(GR[r][c].id===id){ctx.strokeStyle='rgba(255,40,40,.8)';ctx.lineWidth=2;ctx.strokeRect(c*CSZ+1,r*CSZ+1,CSZ-2,CSZ-2);}ctx.restore();toast(`高亮 ${id}`,'i',1500);}
+
+/* ═══ Tools ═══ */
+function setTool(t2){
+  tool=t2;['pointer','paint','fill','pick','replace'].forEach(k=>$('t-'+k).classList.toggle('on',k===t2));
+  const h=$('hint'),ps=$('paint-sel'),sep=$('ps-sep');h.className='phint';ps.style.display='none';sep.style.display='none';
+  if(t2==='paint'){h.className='phint show paint';h.textContent='🖌️ 涂色 · 点击/拖拽 · 右键快捷 · Ctrl+Z撤销';ps.style.display='flex';sep.style.display='block';GC.style.cursor='cell';}
+  else if(t2==='fill'){h.className='phint show fill';h.textContent='🪣 填充 · 点击格子填充同色连通区域';ps.style.display='flex';sep.style.display='block';GC.style.cursor='crosshair';}
+  else if(t2==='pick'){h.className='phint show pick';h.textContent='💉 吸管 · 点击画布拾取颜色';GC.style.cursor='crosshair';}
+  else if(t2==='replace'){h.className='phint show replace';h.textContent='🔄 替换 · 选择两种颜色';openM('m-replace');GC.style.cursor='crosshair';}
+  else GC.style.cursor='crosshair';
+}
+$('t-pointer').addEventListener('click',()=>setTool('pointer'));
+$('t-paint').addEventListener('click',()=>{setTool('paint');if(!paintCol)openPick('涂色')});
+$('t-fill').addEventListener('click',()=>{setTool('fill');if(!paintCol)openPick('填充')});
+$('t-pick').addEventListener('click',()=>setTool('pick'));
+$('t-replace').addEventListener('click',()=>setTool('replace'));
+$('t-mirror').addEventListener('click',()=>{mirrorOn=!mirrorOn;$('t-mirror').classList.toggle('on',mirrorOn);if(mirrorOn){$('hint').className='phint show mirror';$('hint').textContent='🪞 镜像已开启';}else setTool(tool);toast(mirrorOn?'🪞 镜像开启':'镜像关闭','i',1200)});
+$('t-undo').addEventListener('click',undo);
+$('t-redo').addEventListener('click',redo);
+$('ps-dot').addEventListener('click',()=>openPick('涂色'));
+$('t-zin').addEventListener('click',()=>{CSZ=Math.min(48,CSZ+4);$('cell-sz').value=CSZ;$('vc').textContent=CSZ;if(GR)render()});
+$('t-zout').addEventListener('click',()=>{CSZ=Math.max(6,CSZ-4);$('cell-sz').value=CSZ;$('vc').textContent=CSZ;if(GR)render()});
+$('t-z1').addEventListener('click',()=>{CSZ=20;$('cell-sz').value=20;$('vc').textContent=20;if(GR)render()});
+
+/* ═══ Pick modal ═══ */
+function openPick(title,cb){$('pick-title').textContent='🎨 选择'+title+'颜色';$('pick-search').value='';pickTarget=cb||null;renderPG();openM('m-pick');}
+function renderPG(filter=''){
+  const g=$('pick-grid');g.innerHTML='';const pal=getPal(palKey),fl=filter.toLowerCase();
+  pal.filter(c=>!fl||c.id.toLowerCase().includes(fl)||c.name.includes(fl)).forEach(c=>{
+    const d=document.createElement('div');d.className='cgc'+(paintCol&&paintCol.id===c.id?' sel':'');d.style.background=c.hex;d.style.color=txc(c.hex);d.innerHTML=`<span>${c.id}</span>`;d.title=`${c.id} ${c.name}`;
+    d.addEventListener('click',()=>{setPaintC(c);if(pickTarget==='from'){repFrom=c;$('rep-from').style.background=c.hex;$('rep-from-label').textContent=c.id;}else if(pickTarget==='to'){repTo=c;$('rep-to').style.background=c.hex;$('rep-to-label').textContent=c.id;}closeM('m-pick')});
+    g.appendChild(d);
+  });
+}
+$('pick-search').addEventListener('input',e=>renderPG(e.target.value));
+function openPickFor(w){pickTarget=w;openPick(w==='from'?'被替换':'目标');}
+function setPaintC(c){paintCol=c;$('ps-dot').style.background=c.hex;$('ps-label').textContent=c.id+' '+c.name;}
+
+/* ═══ Canvas interaction ═══ */
+function gPos(e){const r=GC.getBoundingClientRect(),cw=parseFloat(GC.style.width)||r.width,ch=parseFloat(GC.style.height)||r.height;return{col:Math.floor((e.clientX-r.left)/r.width*cw/CSZ),row:Math.floor((e.clientY-r.top)/r.height*ch/CSZ)};}
+GC.addEventListener('mousemove',e=>{
+  if(!GR)return;const{col,row}=gPos(e);
+  if(row<0||row>=GR.length||col<0||col>=GR[0].length){TT.style.display='none';return;}
+  const en=GR[row][col];TT.style.display='block';TT.style.left=(e.clientX+12)+'px';TT.style.top=(e.clientY+12)+'px';
+  TT.innerHTML=`<span style="display:inline-block;width:11px;height:11px;background:${en.hex};border-radius:50%;border:1px solid rgba(255,255,255,.4);margin-right:5px;vertical-align:middle;"></span><b>${en.id}</b> ${en.name} · ${en.hex} · [${col+1},${row+1}]`;
+  if(isPainting&&tool==='paint'&&paintCol)doPaint(row,col);
+});
+GC.addEventListener('mouseleave',()=>{TT.style.display='none';isPainting=false});
+GC.addEventListener('mousedown',e=>{
+  if(!GR||e.button!==0)return;const{col,row}=gPos(e);if(row<0||row>=GR.length||col<0||col>=GR[0].length)return;
+  if(tool==='paint'&&paintCol){isPainting=true;pushHist();doPaint(row,col);}
+  else if(tool==='fill'&&paintCol){pushHist();floodFill(row,col,paintCol);render();renderLeg();toast('🪣 填充完成','s',1200);}
+  else if(tool==='pick'){setPaintC(GR[row][col]);setTool('paint');toast(`💉 已吸取 ${GR[row][col].id}`,'s',1500);}
+});
+GC.addEventListener('mouseup',()=>{if(isPainting){isPainting=false;renderLeg()}});
+
+function doPaint(r,c){if(!paintCol)return;GR[r][c]={...paintCol};qDraw(r,c);if(mirrorOn){const mc=GR[0].length-1-c;if(mc!==c&&mc>=0){GR[r][mc]={...paintCol};qDraw(r,mc);}}}
+function qDraw(r,c){
+  const dpr=devicePixelRatio||2,ctx=GC.getContext('2d');ctx.save();ctx.scale(dpr,dpr);
+  const e=GR[r][c],x=c*CSZ,y=r*CSZ;ctx.fillStyle=e.hex;ctx.fillRect(x,y,CSZ,CSZ);
+  if($('ck-grid').checked){ctx.strokeStyle='rgba(0,0,0,.11)';ctx.lineWidth=.5;ctx.strokeRect(x+.25,y+.25,CSZ-.5,CSZ-.5);}
+  if($('ck-num').checked&&CSZ>=12){const fs=Math.max(6,Math.floor(CSZ*.36));ctx.font=`bold ${fs}px 'PingFang SC',monospace`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.lineWidth=fs*.28;ctx.lineJoin='round';const l=lum(e.hex);ctx.strokeStyle=l>145?'rgba(255,255,255,.5)':'rgba(0,0,0,.3)';ctx.strokeText(e.id,x+CSZ/2,y+CSZ/2);ctx.fillStyle=txc(e.hex);ctx.fillText(e.id,x+CSZ/2,y+CSZ/2);}
+  ctx.restore();
+}
+function floodFill(sr,sc,nc){const oid=GR[sr][sc].id;if(oid===nc.id)return;const rows=GR.length,cols=GR[0].length,vis=Array.from({length:rows},()=>new Uint8Array(cols)),st=[[sr,sc]];while(st.length){const[r,c]=st.pop();if(r<0||r>=rows||c<0||c>=cols||vis[r][c]||GR[r][c].id!==oid)continue;vis[r][c]=1;GR[r][c]={...nc};st.push([r-1,c],[r+1,c],[r,c-1],[r,c+1]);}}
+
+/* ═══ Context menu ═══ */
+let ctxR=-1,ctxC=-1;
+GC.addEventListener('contextmenu',e=>{e.preventDefault();if(!GR)return;const{col,row}=gPos(e);if(row<0||row>=GR.length||col<0||col>=GR[0].length)return;ctxR=row;ctxC=col;const m=$('ctx-menu');m.style.display='block';m.style.left=Math.min(e.clientX,innerWidth-200)+'px';m.style.top=Math.min(e.clientY,innerHeight-200)+'px';});
+document.addEventListener('click',()=>{$('ctx-menu').style.display='none'});
+document.querySelectorAll('.ctx-item').forEach(el=>el.addEventListener('click',()=>{
+  const act=el.dataset.act,en=GR[ctxR]?.[ctxC];if(!en)return;
+  if(act==='pick-this'){setPaintC(en);setTool('paint');toast(`吸取 ${en.id}`,'s',1200);}
+  else if(act==='fill-here'){if(!paintCol){toast('请先选色','e');return;}pushHist();floodFill(ctxR,ctxC,paintCol);render();renderLeg();}
+  else if(act==='replace-this'){repFrom=en;$('rep-from').style.background=en.hex;$('rep-from-label').textContent=en.id;openM('m-replace');}
+  else if(act==='highlight')highlightC(en.id);
+  else if(act==='count-this'){const c=cnt()[en.id],t=GR.length*GR[0].length;toast(`📊 ${en.id}：${c?c.n:0}颗 (${c?((c.n/t)*100).toFixed(1):0}%)`,'i',3e3);}
+}));
+$('btn-dorep').addEventListener('click',()=>{if(!repFrom||!repTo){toast('请选择两种颜色','e');return;}if(!GR)return;pushHist();let n=0;for(const r of GR)for(let i=0;i<r.length;i++)if(r[i].id===repFrom.id){r[i]={...repTo};n++;}render();renderLeg();closeM('m-replace');toast(`🔄 ${repFrom.id}→${repTo.id}（${n}处）`,'s');});
+
+/* ═══ Keyboard ═══ */
+document.addEventListener('keydown',e=>{
+  if(['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName))return;
+  if(e.ctrlKey&&e.key==='z'){e.preventDefault();undo();return;}
+  if(e.ctrlKey&&e.key==='y'){e.preventDefault();redo();return;}
+  const k=e.key.toLowerCase();
+  if(k==='v')setTool('pointer');else if(k==='b')setTool('paint');else if(k==='g')setTool('fill');else if(k==='i')setTool('pick');else if(k==='r')setTool('replace');else if(k==='m')$('t-mirror').click();else if(k==='='||k==='+')$('t-zin').click();else if(k==='-')$('t-zout').click();else if(k==='0')$('t-z1').click();
+});
+
+/* ═══ Color list ═══ */
+function renderCL(){
+  const q=$('c-search').value.toLowerCase(),all=allColors(),ss=allSeries();
+  const sf=$('s-filter');sf.innerHTML='';
+  const pill=(code,label)=>{const p=document.createElement('span');p.className='sp'+(actSer===code?' on':'');p.textContent=label;p.addEventListener('click',()=>{actSer=code;renderCL()});sf.appendChild(p)};
+  pill('ALL','全部');Object.entries(ss).forEach(([k,v])=>pill(k,v.e+k));
+  const sel=$('c-series');sel.innerHTML='';Object.entries(ss).forEach(([k,v])=>{const o=document.createElement('option');o.value=k;o.textContent=v.e+' '+v.n;sel.appendChild(o)});
+  const fl=all.filter(c=>(actSer==='ALL'||c.s===actSer)&&(!q||c.id.toLowerCase().includes(q)||c.name.includes(q)||c.hex.toLowerCase().includes(q)));
+  const cl=$('c-list');cl.innerHTML='';
+  if(!fl.length){cl.innerHTML='<div style="text-align:center;padding:16px;color:var(--text3);font-size:.8rem;">无匹配</div>';return;}
+  fl.forEach(c=>{
+    const isCust=customColors.some(x=>x.id===c.id);
+    const d=document.createElement('div');d.className='ci'+(isCust?' cc':'');
+    d.innerHTML=`<div class="cd" style="background:${c.hex}"></div><div class="cii"><div class="cid">${c.id}${isCust?'<span style="font-size:.55rem;background:#fff3e0;color:#e65c00;border-radius:3px;padding:0 3px;margin-left:3px;">自定义</span>':''}</div><div class="cin">${c.name} · ${c.hex}</div></div><div class="cia">${isCust?`<button class="mb mbe" data-a="edit" data-id="${c.id}">✏️</button><button class="mb mbd" data-a="del" data-id="${c.id}">🗑️</button>`:''}</div>`;
+    d.addEventListener('click',e=>{const t=e.target.closest('[data-a]');if(t?.dataset.a==='edit')openEdC(t.dataset.id);else if(t?.dataset.a==='del')delC(t.dataset.id);else{setPaintC(c);toast(`选中 ${c.id}`,'i',1e3)}});
+    cl.appendChild(d);
+  });
+}
+$('c-search').addEventListener('input',renderCL);
+
+/* ═══ Color picker linking ═══ */
+$('cpi').addEventListener('input',()=>{$('cpb').style.background=$('cpi').value;$('c-hex').value=$('cpi').value.replace('#','').toUpperCase()});
+$('c-hex').addEventListener('input',()=>{const v=$('c-hex').value.replace(/[^0-9a-fA-F]/g,'');if(v.length===6){$('cpb').style.background='#'+v;$('cpi').value='#'+v}});
+
+/* ═══ Add color ═══ */
+$('btn-addc').addEventListener('click',()=>{
+  const hex=('#'+$('c-hex').value.replace(/[^0-9a-fA-F]/g,'')).toUpperCase(),id=$('c-id').value.trim(),name=$('c-name').value.trim(),s=$('c-series').value;
+  if(hex.length!==7){toast('无效HEX','e');return;}if(!id){toast('请填色号','e');return;}if(!name){toast('请填名称','e');return;}
+  if(allColors().some(c=>c.id===id)){toast('色号已存在','e');return;}
+  customColors.push({id,name,hex,s});SS('mc_cc',customColors);renderCL();toast(`已添加 ${id}`,'s');$('c-id').value='';$('c-name').value='';
+});
+$('btn-pickc').addEventListener('click',()=>{
+  if(!GR){toast('请先生成图纸','e');return;}toast('点击画布吸色','i',2500);
+  const h=e=>{const{col,row}=gPos(e);if(row>=0&&row<GR.length&&col>=0&&col<GR[0].length){const en=GR[row][col];$('c-hex').value=en.hex.replace('#','');$('cpi').value=en.hex;$('cpb').style.background=en.hex;$('c-name').value=en.name+'副本';toast(`吸取 ${en.id}`,'s');document.querySelector('[data-t="colors"]').click();}GC.removeEventListener('click',h)};GC.addEventListener('click',h);
+});
+
+/* ═══ Edit color ═══ */
+function openEdC(id){
+  const c=customColors.find(x=>x.id===id);if(!c)return;editingId=id;
+  $('ed-id').value=c.id;$('ed-name').value=c.name;$('ed-hex').value=c.hex;$('ed-preview').style.background=c.hex;$('ed-picker').value=c.hex;
+  const sel=$('ed-ser');sel.innerHTML='';Object.entries(allSeries()).forEach(([k,v])=>{const o=document.createElement('option');o.value=k;o.textContent=v.e+' '+v.n;sel.appendChild(o)});sel.value=c.s||'A';openM('m-edit');
+}
+$('ed-picker').addEventListener('input',e=>{$('ed-preview').style.background=e.target.value;$('ed-hex').value=e.target.value});
+$('ed-hex').addEventListener('input',()=>{const v=$('ed-hex').value;if(/^#[0-9a-fA-F]{6}$/i.test(v)){$('ed-preview').style.background=v;$('ed-picker').value=v}});
+$('btn-saved').addEventListener('click',()=>{const i=customColors.findIndex(c=>c.id===editingId);if(i<0)return;const h=$('ed-hex').value;if(!/^#[0-9a-fA-F]{6}$/i.test(h)){toast('无效HEX','e');return;}customColors[i]={id:$('ed-id').value.trim()||editingId,name:$('ed-name').value.trim()||customColors[i].name,hex:h.toUpperCase(),s:$('ed-ser').value};SS('mc_cc',customColors);renderCL();closeM('m-edit');toast('已更新','s')});
+function delC(id){if(!confirm(`删除 ${id}?`))return;customColors=customColors.filter(c=>c.id!==id);SS('mc_cc',customColors);renderCL();toast(`已删除`,'s');}
+
+/* ═══ Import/Export ═══ */
+$('btn-expc').addEventListener('click',()=>{if(!customColors.length&&!customSeries.length){toast('无数据','e');return;}dl(JSON.stringify({colors:customColors,series:customSeries},null,2),'mard_custom.json','application/json');toast('已导出','s')});
+$('btn-impc').addEventListener('click',()=>$('imp-file').click());
+$('imp-file').addEventListener('change',()=>{const f=$('imp-file').files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);let nc=0,ns=0;if(Array.isArray(d.colors))d.colors.forEach(c=>{if(c.id&&c.hex&&!allColors().some(x=>x.id===c.id)){customColors.push(c);nc++}});if(Array.isArray(d.series))d.series.forEach(s=>{if(s.code&&!customSeries.some(x=>x.code===s.code)){customSeries.push(s);ns++}});SS('mc_cc',customColors);SS('mc_cs',customSeries);renderCL();toast(`导入 ${nc}色 ${ns}系`,'s')}catch{toast('格式错误','e')}};r.readAsText(f);$('imp-file').value=''});
+$('btn-clearc').addEventListener('click',()=>{if(!confirm('清空所有自定义?'))return;customColors=[];SS('mc_cc',[]);renderCL();toast('已清空','s')});
+
+/* ═══ Series management ═══ */
+function renderST(){
+  const sl=$('ser-list');sl.innerHTML='';
+  Object.entries(allSeries()).forEach(([k,v])=>{
+    const colors=allColors().filter(c=>c.s===k),sw=colors.slice(0,10).map(c=>`<div style="width:11px;height:11px;border-radius:50%;background:${c.hex};border:1px solid rgba(0,0,0,.08)"></div>`).join('');
+    const d=document.createElement('div');d.style.cssText='display:flex;align-items:center;gap:8px;padding:7px 8px;margin-bottom:4px;background:var(--surface);border:1px solid var(--border);border-radius:7px;';
+    d.innerHTML=`<span style="font-size:1.1rem">${v.e}</span><div style="flex:1"><div style="font-size:.78rem;font-weight:700">${k} · ${v.n}</div>${v.d?`<div style="font-size:.65rem;color:var(--text3)">${v.d}</div>`:''}<div style="display:flex;gap:2px;margin-top:3px">${sw}<span style="font-size:.66rem;color:var(--text3);margin-left:4px">${colors.length}色</span></div></div>${v.custom?`<button class="mb mbd" onclick="delSer('${k}')">🗑️</button>`:''}`;
+    sl.appendChild(d);
+  });
+  renderPP();
+}
+$('btn-newser').addEventListener('click',()=>{
+  const code=$('ns-code').value.trim().toUpperCase(),name=$('ns-name').value.trim(),emoji=$('ns-emoji').value.trim()||'⭐',desc=$('ns-desc').value.trim();
+  if(!code||!name){toast('请填写代码和名称','e');return;}if(allSeries()[code]){toast('代码已存在','e');return;}
+  customSeries.push({code,name,emoji,desc});SS('mc_cs',customSeries);renderST();renderCL();toast(`色系「${emoji}${code}」已创建`,'s');
+  $('ns-code').value='';$('ns-name').value='';$('ns-emoji').value='';$('ns-desc').value='';
+});
+function delSer(code){if(!confirm(`删除色系 ${code}?`))return;customSeries=customSeries.filter(s=>s.code!==code);SS('mc_cs',customSeries);renderST();renderCL();toast('已删除','s');}
+
+/* ═══ Palette presets ═══ */
+function renderPP(){
+  const pl=$('preset-list');pl.innerHTML='';
+  [{k:'full',n:'全色板'},{k:'noHM',n:'去除H/M'},{k:'hm',n:'仅H/M'}].forEach(o=>{
+    const d=document.createElement('div');d.style.cssText=`display:flex;align-items:center;gap:6px;padding:6px 8px;margin-bottom:4px;cursor:pointer;border-radius:6px;border:1.5px solid ${palKey===o.k?'var(--accent)':'var(--border)'};background:${palKey===o.k?'var(--accent-bg)':'var(--surface)'};font-size:.8rem;`;
+    d.textContent=o.n+` (${getPal(o.k).length}色)`;d.addEventListener('click',()=>{palKey=o.k;$('pal-sel').value=o.k;renderST();toast(`已选「${o.n}」`,'s',1200)});pl.appendChild(d);
+  });
+  customPals.forEach(cp=>{
+    const d=document.createElement('div');d.style.cssText=`display:flex;align-items:center;gap:6px;padding:6px 8px;margin-bottom:4px;cursor:pointer;border-radius:6px;border:1.5px solid ${palKey===cp.id?'var(--accent)':'var(--border)'};background:${palKey===cp.id?'var(--accent-bg)':'var(--surface)'};font-size:.8rem;`;
+    d.innerHTML=`<span style="flex:1">${cp.name} (${cp.colorIds.length}色)</span><button class="mb mbd" style="opacity:1" onclick="event.stopPropagation();delPal('${cp.id}')">🗑️</button>`;
+    d.addEventListener('click',()=>{palKey=cp.id;if(!$('pal-sel').querySelector(`[value="${cp.id}"]`)){const o=document.createElement('option');o.value=cp.id;o.textContent=cp.name;$('pal-sel').appendChild(o)}$('pal-sel').value=cp.id;renderST();toast(`已选「${cp.name}」`,'s',1200)});
+    pl.appendChild(d);
+  });
+}
+function delPal(id){customPals=customPals.filter(p=>p.id!==id);SS('mc_cp',customPals);if(palKey===id)palKey='full';renderST();toast('已删除','s');}
+$('btn-savepal').addEventListener('click',()=>{const name=prompt('色板名称：');if(!name)return;const pal=getPal(palKey);if(!pal.length){toast('色板为空','e');return;}customPals.push({id:'p_'+Date.now(),name:name.trim(),colorIds:pal.map(c=>c.id)});SS('mc_cp',customPals);renderST();toast(`色板「${name}」已保存`,'s')});
+
+/* ═══ Compare ═══ */
+$('btn-compare').addEventListener('click',()=>{const cp=$('compare-panel');if(cp.style.display==='block'){cp.style.display='none';return;}if(!GR||!imgData)return;cp.style.display='block';$('compare-orig').src=imgData;const cv=$('compare-canvas');renderTo(cv,Math.min(CSZ,12),2,true);cv.style.maxHeight='180px';cv.style.width='auto'});
+
+/* ═══ Export ═══ */
+$('btn-exp').addEventListener('click',()=>{const o=document.createElement('canvas');renderTo(o,CSZ,2,true);const a=document.createElement('a');a.download='拼豆图纸_MARD_2x.png';a.href=o.toDataURL('image/png');a.click();toast('已导出','s')});
+$('btn-exphd').addEventListener('click',()=>{$('loading').classList.add('show');setTimeout(()=>{const o=document.createElement('canvas');renderTo(o,CSZ,4,true);const a=document.createElement('a');a.download='拼豆图纸_MARD_4x.png';a.href=o.toDataURL('image/png');a.click();$('loading').classList.remove('show');toast('高清导出完成','s')},30)});
+$('btn-csv').addEventListener('click',()=>{const c=cnt(),t=GR.length*GR[0].length,rows=[['色号','名称','色系','HEX','R','G','B','颗数','占比%']];Object.values(c).sort((a,b)=>b.n-a.n).forEach(({e,n})=>{const[r,g,b]=h2r(e.hex);rows.push([e.id,e.name,e.s,e.hex,r,g,b,n,((n/t)*100).toFixed(2)])});dl('\uFEFF'+rows.map(r=>r.join(',')).join('\n'),'MARD用料清单.csv','text/csv;charset=utf-8;');toast('CSV已导出','s')});
+$('btn-print').addEventListener('click',()=>{
+  const o=document.createElement('canvas');renderTo(o,CSZ,3,true);const src=o.toDataURL('image/png');
+  const c=cnt(),t=GR.length*GR[0].length,cc=Object.keys(c).length;
+  const leg=Object.values(c).sort((a,b)=>b.n-a.n).map(({e,n})=>`<div style="display:flex;align-items:center;gap:5px;margin:2px 0;break-inside:avoid;"><div style="width:11px;height:11px;border-radius:50%;background:${e.hex};border:1.5px solid #ccc"></div><span style="font-size:10px"><b>${e.id}</b> ${e.name} — <b>${n}</b>颗 (${(n/t*100).toFixed(1)}%)</span></div>`).join('');
+  const w=window.open('','_blank');w.document.write(`<html><head><title>拼豆图纸</title><style>body{margin:14px;font-family:sans-serif}h1{font-size:.9rem}info{font-size:.72rem;color:#888}.w{display:flex;gap:16px;flex-wrap:wrap}img{max-width:55%;border:1px solid #ddd}.l{flex:1;columns:2;column-gap:8px}</style></head><body><h1>🧩 拼豆图纸 · MARD</h1><div class="info">${GR[0].length}×${GR.length} · ${t.toLocaleString()}颗 · ${cc}色</div><div class="w"><img src="${src}"/><div class="l">${leg}</div></div><script>onload=()=>print()<\/script></body></html>`);w.document.close();toast('打印页面已打开','s');
+});
+
+/* ═══ Init ═══ */
+renderCL();
+customPals.forEach(cp=>{if(!$('pal-sel').querySelector(`[value="${cp.id}"]`)){const o=document.createElement('option');o.value=cp.id;o.textContent=cp.name;$('pal-sel').appendChild(o)}});
+if(OFF.length)setPaintC(OFF[0]);
+setTool('pointer');updH();
+</script>
+</body>
+</html>
